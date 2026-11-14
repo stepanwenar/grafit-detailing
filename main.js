@@ -106,10 +106,19 @@
         b.classList.remove("is-switching");
       }, 220);
     });
-    pill.style.transform = `translateX(${cls * 100}%)`;
     tabs.forEach((t) => t.setAttribute("aria-selected", String(Number(t.dataset.class) === cls)));
+    movePill();
+  }
+  // Подсветка повторяет размер и положение выбранной кнопки (кнопки разной ширины)
+  function movePill() {
+    const active = tabs.find((t) => t.getAttribute("aria-selected") === "true");
+    if (!active) return;
+    pill.style.width = `${active.offsetWidth}px`;
+    pill.style.transform = `translateX(${active.offsetLeft - 4}px)`;
   }
   tabs.forEach((t) => t.addEventListener("click", () => showPrices(Number(t.dataset.class), true)));
+  window.addEventListener("resize", movePill);
+  document.fonts?.ready.then(movePill);
   showPrices(0, false);
 
   /* ---------- До / после ---------- */

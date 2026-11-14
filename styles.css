@@ -463,7 +463,7 @@ em {
   position: relative;
   display: inline-grid;
   grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-auto-columns: auto;
   padding: 4px;
   border: 1px solid var(--line-2);
   border-radius: 999px;
@@ -485,10 +485,10 @@ em {
 .tabs__pill {
   position: absolute;
   top: 4px; bottom: 4px; left: 4px;
-  width: calc((100% - 8px) / 3);
+  width: 0;
   border-radius: 999px;
   background: var(--text);
-  transition: transform 0.55s var(--ease);
+  transition: transform 0.55s var(--ease), width 0.55s var(--ease);
 }
 
 .pricelist__rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
@@ -528,17 +528,22 @@ em {
   inset: 0;
   clip-path: inset(0 calc(100% - var(--pos)) 0 0);
 }
-/* «До»: тусклый, мутный лак — демонстрационная имитация */
-.compare__before .compare__img { filter: saturate(0.35) contrast(0.72) brightness(0.82) sepia(0.25) blur(0.6px); }
+/* «До»: тусклый лак с паутинкой царапин (демонстрационная имитация, без цветного оттенка) */
+.compare__before .compare__img { filter: grayscale(0.4) contrast(0.6) brightness(0.95) blur(0.5px); }
 .compare__before::after {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 30% 40%, rgba(170, 150, 120, 0.18), transparent 40%),
-    radial-gradient(circle at 70% 70%, rgba(150, 140, 120, 0.16), transparent 45%),
-    rgba(120, 110, 95, 0.12);
+    /* круговые царапины-«голограммы» вокруг бликов */
+    repeating-radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 6px),
+    repeating-radial-gradient(circle at 74% 58%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 8px),
+    /* молочная дымка окисленного лака */
+    linear-gradient(rgba(170, 172, 176, 0.14), rgba(170, 172, 176, 0.14));
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 35%, rgba(0, 0, 0, 0.55) 80%);
+  mask-image: radial-gradient(ellipse at 50% 45%, #000 35%, rgba(0, 0, 0, 0.55) 80%);
   mix-blend-mode: screen;
+  pointer-events: none;
 }
 .compare__handle {
   position: absolute;
@@ -975,7 +980,7 @@ em {
   .stat__label { font-size: 10px; letter-spacing: 0.08em; }
   .hero__buttons .btn { flex: 1 1 100%; }
   .form__row { grid-template-columns: 1fr; }
-  .tabs { width: 100%; }
+  .tabs { width: 100%; grid-auto-columns: 1fr; }
   .tabs button { padding: 10px 8px; }
   .pricelist__rows li { font-size: 15px; gap: 10px; }
   .contacts__list div { grid-template-columns: 1fr; gap: 4px; }
