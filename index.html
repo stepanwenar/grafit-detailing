@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -225,17 +225,18 @@
       <h2 class="section__title">Результат,<br><em>который видно.</em></h2>
     </div>
 
-    <div class="compare reveal" id="compare">
-      <img class="compare__img" loading="lazy" src="img/compare.jpg" alt="Автомобиль после полировки и керамики">
-      <div class="compare__before" id="compare-before">
-        <img class="compare__img" loading="lazy" src="img/compare.jpg" alt="Автомобиль до обработки: тусклый лак">
-      </div>
-      <div class="compare__handle" id="compare-handle" aria-hidden="true"><span></span></div>
-      <span class="compare__label compare__label--before">До</span>
-      <span class="compare__label compare__label--after">После</span>
-      <input class="compare__range" id="compare-range" type="range" min="0" max="100" value="50" aria-label="Сравнение до и после">
-    </div>
-    <p class="compare__caption">Потяните ползунок · Полировка + керамика · 2 дня</p>
+    <figure class="featured reveal">
+      <img loading="lazy" src="img/compare.jpg" alt="Mercedes-Benz G-класс после полировки и керамики: глубокий чёрный лак и хромированная окантовка фары">
+      <figcaption class="featured__info">
+        <span class="featured__tag">Работа недели</span>
+        <h3 class="featured__title">Mercedes-Benz G‑класс</h3>
+        <dl class="featured__facts">
+          <div><dt>Работы</dt><dd>Полировка + керамика, 2 слоя</dd></div>
+          <div><dt>Срок</dt><dd>2 дня</dd></div>
+          <div><dt>Гарантия</dt><dd>3 года</dd></div>
+        </dl>
+      </figcaption>
+    </figure>
 
     <div class="gallery">
       <figure class="gallery__item gallery__item--wide reveal"><img loading="lazy" src="img/gallery-sedan.jpg" alt="Силуэт чёрного седана в темноте"><figcaption>Керамика · 2 слоя</figcaption></figure>
@@ -388,7 +389,7 @@
 
 <a href="#booking" class="sticky-cta" id="sticky-cta">Записаться</a>
 
-<script src="config.js?v=3"></script>
-<script src="main.js?v=3"></script>
+<script src="config.js?v=4"></script>
+<script src="main.js?v=4"></script>
 </body>
 </html>

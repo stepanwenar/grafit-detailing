@@ -511,97 +511,65 @@ em {
 .pricelist__rows b.is-switching { opacity: 0; }
 .pricelist__note { margin: 20px 0 0; font-size: 13px; color: var(--dim); }
 
-/* ---------- До / после ---------- */
+/* ---------- Работа недели ---------- */
 
-.compare {
-  --pos: 50%;
+.featured {
   position: relative;
+  margin: 0 0 clamp(56px, 8vw, 96px);
   aspect-ratio: 16 / 8;
   overflow: hidden;
   border-radius: var(--radius);
-  user-select: none;
   background: var(--bg-3);
 }
-.compare__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.compare__before {
-  position: absolute;
-  inset: 0;
-  clip-path: inset(0 calc(100% - var(--pos)) 0 0);
-}
-/* «До»: тусклый лак с паутинкой царапин (демонстрационная имитация, без цветного оттенка) */
-.compare__before .compare__img { filter: grayscale(0.4) contrast(0.6) brightness(0.95) blur(0.5px); }
-.compare__before::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    /* круговые царапины-«голограммы» вокруг бликов */
-    repeating-radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 6px),
-    repeating-radial-gradient(circle at 74% 58%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 8px),
-    /* молочная дымка окисленного лака */
-    linear-gradient(rgba(170, 172, 176, 0.14), rgba(170, 172, 176, 0.14));
-  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, #000 35%, rgba(0, 0, 0, 0.55) 80%);
-  mask-image: radial-gradient(ellipse at 50% 45%, #000 35%, rgba(0, 0, 0, 0.55) 80%);
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-.compare__handle {
-  position: absolute;
-  top: 0; bottom: 0;
-  left: var(--pos);
-  width: 1px;
-  background: rgba(255, 255, 255, 0.7);
-  pointer-events: none;
-}
-.compare__handle span {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 56px; height: 56px;
-  margin: -28px 0 0 -28px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 50%;
-  background: rgba(11, 11, 12, 0.45);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.compare__handle span::before,
-.compare__handle span::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 7px; height: 7px;
-  margin-top: -4px;
-  border: solid #fff;
-  border-width: 1px 1px 0 0;
-}
-.compare__handle span::before { left: 15px; transform: rotate(-135deg); }
-.compare__handle span::after { right: 15px; transform: rotate(45deg); }
-.compare__label {
-  position: absolute;
-  bottom: 20px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(11, 11, 12, 0.6);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  font-size: 11px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  pointer-events: none;
-}
-.compare__label--before { left: 20px; }
-.compare__label--after { right: 20px; }
-.compare__range {
-  position: absolute;
-  inset: 0;
+.featured img {
   width: 100%; height: 100%;
-  margin: 0;
-  opacity: 0;
-  cursor: ew-resize;
+  object-fit: cover;
+  transform: scale(1.04);
+  transition: transform 2.4s var(--ease);
 }
-.compare__range:focus-visible + .compare__handle,
-.compare:focus-within .compare__handle span { border-color: var(--accent); }
-.compare__caption { margin: 18px 0 clamp(56px, 8vw, 96px); font-size: 13px; color: var(--dim); letter-spacing: 0.04em; }
+.featured.is-visible img { transform: scale(1); }
+.featured::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(11, 11, 12, 0.88) 0%, rgba(11, 11, 12, 0.45) 38%, transparent 65%);
+  pointer-events: none;
+}
+.featured__info {
+  position: absolute;
+  z-index: 1;
+  left: clamp(24px, 4vw, 56px);
+  bottom: clamp(24px, 4vw, 56px);
+  max-width: 380px;
+}
+.featured__tag {
+  display: inline-block;
+  padding: 5px 14px;
+  border: 1px solid rgba(201, 179, 138, 0.5);
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.featured__title {
+  margin: 18px 0 24px;
+  font-size: clamp(26px, 3vw, 40px);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+.featured__facts { margin: 0; display: grid; gap: 0; }
+.featured__facts div {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-2);
+  font-size: 14px;
+}
+.featured__facts dt { color: var(--dim); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; padding-top: 2px; }
+.featured__facts dd { margin: 0; }
 
 /* ---------- Галерея ---------- */
 
@@ -949,7 +917,10 @@ em {
   .gallery__item figcaption,
   .gallery__item::after { opacity: 1; transform: none; }
 
-  .compare { aspect-ratio: 4 / 3; }
+  .featured { aspect-ratio: auto; background: var(--bg-2); }
+  .featured img { aspect-ratio: 4 / 3; height: auto; }
+  .featured::after { display: none; }
+  .featured__info { position: static; max-width: none; padding: 24px 20px 20px; }
 
   .sticky-cta {
     position: fixed;

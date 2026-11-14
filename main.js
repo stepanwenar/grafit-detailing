@@ -121,32 +121,6 @@
   document.fonts?.ready.then(movePill);
   showPrices(0, false);
 
-  /* ---------- До / после ---------- */
-  const compare = $("#compare");
-  const range = $("#compare-range");
-  const setPos = (v) => compare.style.setProperty("--pos", `${v}%`);
-  range.addEventListener("input", () => setPos(range.value));
-  // Лёгкое движение-подсказка, когда блок впервые появляется на экране
-  if ("IntersectionObserver" in window && !reducedMotion) {
-    const hint = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0].isIntersecting) return;
-        hint.disconnect();
-        const start = performance.now();
-        const step = (now) => {
-          const t = Math.min((now - start) / 1600, 1);
-          const v = 50 + Math.sin(t * Math.PI * 2) * 14 * (1 - t);
-          setPos(v);
-          range.value = v;
-          if (t < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      },
-      { threshold: 0.6 },
-    );
-    hint.observe(compare);
-  }
-
   /* ---------- Кнопки «Выбрать» в пакетах подставляют услугу в форму ---------- */
   const serviceSelect = $("#service-select");
   $$("[data-service]").forEach((btn) =>
