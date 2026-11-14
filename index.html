@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Графит — детейлинг-студия в Воронеже</title>
+  <meta name="description" content="Полировка, керамика, плёнка PPF и химчистка салона. Детейлинг-студия «Графит», Воронеж.">
+  <meta name="theme-color" content="#0b0b0c">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://images.unsplash.com">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ Шапка ============ -->
+<header class="header" id="header">
+  <div class="header__inner">
+    <a href="#top" class="logo" aria-label="Графит — на главную">
+      <span class="logo__mark">ГРАФИТ</span>
+      <span class="logo__sub">Detailing studio</span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Основное меню">
+      <a href="#services">Услуги</a>
+      <a href="#prices">Стоимость</a>
+      <a href="#works">Работы</a>
+      <a href="#about">О студии</a>
+      <a href="#contacts">Контакты</a>
+      <a href="#booking" class="nav__cta-mobile">Записаться</a>
+    </nav>
+    <div class="header__actions">
+      <a href="tel:+74730000000" class="header__phone">+7 473 000-00-00</a>
+      <a href="#booking" class="btn btn--small">Записаться</a>
+      <button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============ 1. Первый экран ============ -->
+<section class="hero">
+  <div class="hero__media">
+    <img
+      src="https://images.unsplash.com/photo-1567808291548-fc3ee04dbcf0?w=1920&q=80&auto=format&fit=crop"
+      srcset="https://images.unsplash.com/photo-1567808291548-fc3ee04dbcf0?w=900&q=75&auto=format&fit=crop 900w,
+              https://images.unsplash.com/photo-1567808291548-fc3ee04dbcf0?w=1600&q=80&auto=format&fit=crop 1600w,
+              https://images.unsplash.com/photo-1567808291548-fc3ee04dbcf0?w=2400&q=80&auto=format&fit=crop 2400w"
+      sizes="100vw" alt="Чёрный автомобиль в детейлинг-боксе под линейным светом" fetchpriority="high">
+  </div>
+  <div class="hero__veil"></div>
+
+  <div class="hero__content container">
+    <p class="eyebrow hero__eyebrow" data-hero>Детейлинг-студия · Воронеж</p>
+    <h1 class="hero__title" data-hero>
+      Глубина цвета.<br>
+      <em>Как в первый день.</em>
+    </h1>
+    <p class="hero__lead" data-hero>
+      Полировка, керамика и защитная плёнка в боксе с дневным светом.
+      Каждый этап — с фотоотчётом, каждый результат — с письменной гарантией.
+    </p>
+    <div class="hero__buttons" data-hero>
+      <a href="#booking" class="btn">Записаться на осмотр</a>
+      <a href="#prices" class="btn btn--ghost">Рассчитать стоимость</a>
+    </div>
+  </div>
+
+  <div class="hero__stats container" data-hero>
+    <div class="stat"><span class="stat__num" data-count="4800" data-suffix="+">0</span><span class="stat__label">автомобилей</span></div>
+    <div class="stat"><span class="stat__num" data-count="9">0</span><span class="stat__label">лет в детейлинге</span></div>
+    <div class="stat"><span class="stat__num" data-count="3" data-suffix=" года">0</span><span class="stat__label">гарантия на керамику</span></div>
+    <a href="#services" class="hero__scroll" aria-label="Листать вниз"><span></span></a>
+  </div>
+</section>
+
+<!-- ============ 2. Каталог услуг ============ -->
+<section class="section" id="services">
+  <div class="container">
+    <div class="section__head reveal">
+      <p class="eyebrow"><span class="eyebrow__num">01</span>Услуги</p>
+      <h2 class="section__title">Шесть направлений.<br><em>Один стандарт.</em></h2>
+      <p class="section__lead">Работаем только руками мастеров и только с теми составами, за которые готовы отвечать гарантией.</p>
+    </div>
+
+    <div class="services">
+      <article class="service reveal">
+        <div class="service__img"><img loading="lazy" src="https://images.unsplash.com/photo-1780558852670-3f49298ecc1f?w=900&q=75&auto=format&fit=crop" alt="Мастер полирует капот орбитальной машинкой"></div>
+        <div class="service__body">
+          <span class="service__num">01</span>
+          <h3>Полировка кузова</h3>
+          <p>Убираем голограммы, паутину и мелкие царапины. Возвращаем лаку глубину и зеркальность.</p>
+          <div class="service__meta"><span>от 18 000 ₽</span><span>1–2 дня</span></div>
+        </div>
+      </article>
+
+      <article class="service reveal">
+        <div class="service__img"><img loading="lazy" src="https://images.unsplash.com/photo-1518306727298-4c17e1bf6942?w=900&q=75&auto=format&fit=crop" alt="Глянцевый капот серебристого автомобиля"></div>
+        <div class="service__body">
+          <span class="service__num">02</span>
+          <h3>Керамическое покрытие</h3>
+          <p>Твёрдый слой поверх лака: грязь и реагенты не держатся, блеск сохраняется годами.</p>
+          <div class="service__meta"><span>от 25 000 ₽</span><span>гарантия до 3 лет</span></div>
+        </div>
+      </article>
+
+      <article class="service reveal">
+        <div class="service__img"><img loading="lazy" src="https://images.unsplash.com/photo-1632823469850-2f77dd9c7f93?w=900&q=75&auto=format&fit=crop" alt="Мастер наносит защитную плёнку на фару"></div>
+        <div class="service__body">
+          <span class="service__num">03</span>
+          <h3>Плёнка PPF</h3>
+          <p>Полиуретан защищает от сколов и песка. Мелкие царапины на плёнке затягиваются от тепла.</p>
+          <div class="service__meta"><span>от 45 000 ₽</span><span>2–5 дней</span></div>
+        </div>
+      </article>
+
+      <article class="service reveal">
+        <div class="service__img"><img loading="lazy" src="https://images.unsplash.com/photo-1605437241278-c1806d14a4d9?w=900&q=75&auto=format&fit=crop" alt="Кожаный салон премиального автомобиля"></div>
+        <div class="service__body">
+          <span class="service__num">04</span>
+          <h3>Химчистка салона</h3>
+          <p>Глубокая чистка кожи, алькантары и потолка, озонирование и защита покрытий.</p>
+          <div class="service__meta"><span>от 12 000 ₽</span><span>6–8 часов</span></div>
+        </div>
+      </article>
+
+      <article class="service reveal">
+        <div class="service__img"><img loading="lazy" src="https://images.unsplash.com/photo-1761312834150-4beefff097a7?w=900&q=75&auto=format&fit=crop" alt="Чёрный автомобиль в активной пене"></div>
+        <div class="service__body">
+          <span class="service__num">05</span>
+          <h3>Детейлинг-мойка</h3>
+          <p>Двухфазная бесконтактная мойка, очистка битума и металлических вкраплений, сушка воздухом.</p>
+          <div class="service__meta"><span>от 3 500 ₽</span><span>2–3 часа</span></div>
+        </div>
+      </article>
+
+      <article class="service reveal">
+        <div class="service__img"><img loading="lazy" src="https://images.unsplash.com/photo-1708805282683-50a060eba80f?w=900&q=75&auto=format&fit=crop" alt="Мастер в перчатках чистит шину щёткой"></div>
+        <div class="service__body">
+          <span class="service__num">06</span>
+          <h3>Диски и тонировка</h3>
+          <p>Керамика для дисков и суппортов, тонировка плёнками с гарантией от выгорания.</p>
+          <div class="service__meta"><span>от 6 000 ₽</span><span>1 день</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. Стоимость ============ -->
+<section class="section section--alt" id="prices">
+  <div class="container">
+    <div class="section__head reveal">
+      <p class="eyebrow"><span class="eyebrow__num">02</span>Стоимость</p>
+      <h2 class="section__title">Честная цена<br><em>до начала работ.</em></h2>
+      <p class="section__lead">Точную сумму называем после бесплатного осмотра под светом. Ниже — ориентиры по классу автомобиля.</p>
+    </div>
+
+    <div class="packages">
+      <article class="package reveal">
+        <p class="package__name">Свежесть</p>
+        <p class="package__price"><span>от</span> 16 900 ₽</p>
+        <p class="package__desc">Чтобы машина снова радовала каждый день.</p>
+        <ul>
+          <li>Детейлинг-мойка</li>
+          <li>Химчистка салона</li>
+          <li>Кварцевый защитный состав</li>
+        </ul>
+        <a href="#booking" class="btn btn--ghost" data-service="Пакет «Свежесть»">Выбрать</a>
+      </article>
+      <article class="package package--featured reveal">
+        <p class="package__badge">Выбирают чаще</p>
+        <p class="package__name">Защита</p>
+        <p class="package__price"><span>от</span> 39 900 ₽</p>
+        <p class="package__desc">Глубокий блеск и защита лака на годы.</p>
+        <ul>
+          <li>Восстановительная полировка</li>
+          <li>Керамика в 2 слоя</li>
+          <li>Керамика дисков</li>
+          <li>Фотоотчёт и гарантийный паспорт</li>
+        </ul>
+        <a href="#booking" class="btn" data-service="Пакет «Защита»">Выбрать</a>
+      </article>
+      <article class="package reveal">
+        <p class="package__name">Шоурум</p>
+        <p class="package__price"><span>от</span> 89 000 ₽</p>
+        <p class="package__desc">Для новых автомобилей и тех, кто не идёт на компромисс.</p>
+        <ul>
+          <li>Плёнка PPF на зоны риска</li>
+          <li>Керамика остального кузова</li>
+          <li>Химчистка и защита салона</li>
+        </ul>
+        <a href="#booking" class="btn btn--ghost" data-service="Пакет «Шоурум»">Выбрать</a>
+      </article>
+    </div>
+
+    <div class="pricelist reveal">
+      <div class="pricelist__top">
+        <h3>Отдельные услуги</h3>
+        <div class="tabs" role="tablist" aria-label="Класс автомобиля">
+          <button role="tab" aria-selected="true" data-class="0">Седан</button>
+          <button role="tab" aria-selected="false" data-class="1">Кроссовер</button>
+          <button role="tab" aria-selected="false" data-class="2">Внедорожник</button>
+          <span class="tabs__pill" aria-hidden="true"></span>
+        </div>
+      </div>
+      <ul class="pricelist__rows" id="price-rows">
+        <li data-prices="3500,4500,5500"><span>Детейлинг-мойка</span><span class="dots"></span><b></b></li>
+        <li data-prices="18000,22000,27000"><span>Восстановительная полировка</span><span class="dots"></span><b></b></li>
+        <li data-prices="25000,30000,36000"><span>Керамика, 2 слоя</span><span class="dots"></span><b></b></li>
+        <li data-prices="12000,15000,18000"><span>Химчистка салона</span><span class="dots"></span><b></b></li>
+        <li data-prices="45000,52000,60000"><span>Плёнка PPF — зоны риска</span><span class="dots"></span><b></b></li>
+        <li data-prices="190000,220000,260000"><span>Плёнка PPF — полный кузов</span><span class="dots"></span><b></b></li>
+        <li data-prices="6000,7000,8000"><span>Тонировка задней полусферы</span><span class="dots"></span><b></b></li>
+        <li data-prices="8000,9000,10000"><span>Керамика дисков и суппортов</span><span class="dots"></span><b></b></li>
+      </ul>
+      <p class="pricelist__note">Цены — «от». Итог зависит от состояния лакокрасочного покрытия и площади работ.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. Галерея работ ============ -->
+<section class="section" id="works">
+  <div class="container">
+    <div class="section__head reveal">
+      <p class="eyebrow"><span class="eyebrow__num">03</span>Работы</p>
+      <h2 class="section__title">Результат,<br><em>который видно.</em></h2>
+    </div>
+
+    <div class="compare reveal" id="compare">
+      <img class="compare__img" loading="lazy" src="https://images.unsplash.com/photo-1554294314-80a5fb7e6bd5?w=1600&q=80&auto=format&fit=crop" alt="Автомобиль после полировки и керамики">
+      <div class="compare__before" id="compare-before">
+        <img class="compare__img" loading="lazy" src="https://images.unsplash.com/photo-1554294314-80a5fb7e6bd5?w=1600&q=80&auto=format&fit=crop" alt="Автомобиль до обработки: тусклый лак">
+      </div>
+      <div class="compare__handle" id="compare-handle" aria-hidden="true"><span></span></div>
+      <span class="compare__label compare__label--before">До</span>
+      <span class="compare__label compare__label--after">После</span>
+      <input class="compare__range" id="compare-range" type="range" min="0" max="100" value="50" aria-label="Сравнение до и после">
+    </div>
+    <p class="compare__caption">Потяните ползунок · Полировка + керамика · 2 дня</p>
+
+    <div class="gallery">
+      <figure class="gallery__item gallery__item--wide reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1485291571150-772bcfc10da5?w=1400&q=75&auto=format&fit=crop" alt="Силуэт чёрного седана в темноте"><figcaption>Керамика · 2 слоя</figcaption></figure>
+      <figure class="gallery__item reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1633014041037-f5446fb4ce99?w=900&q=75&auto=format&fit=crop" alt="Кроссовер в пене во время мойки"><figcaption>Детейлинг-мойка</figcaption></figure>
+      <figure class="gallery__item gallery__item--tall reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=900&q=75&auto=format&fit=crop" alt="Задняя часть автомобиля в струях воды"><figcaption>Подготовка к полировке</figcaption></figure>
+      <figure class="gallery__item reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1620584898989-d39f7f9ed1b7?w=900&q=75&auto=format&fit=crop" alt="Блики на идеально отполированном лаке"><figcaption>Полировка</figcaption></figure>
+      <figure class="gallery__item reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1771491237218-cbd4a707497e?w=900&q=75&auto=format&fit=crop" alt="Мастер чистит салон кистью"><figcaption>Химчистка салона</figcaption></figure>
+      <figure class="gallery__item gallery__item--wide reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1530675706010-bc677ce30ab6?w=1400&q=75&auto=format&fit=crop" alt="Красный спорткар в подземном паркинге"><figcaption>Плёнка PPF · полный кузов</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. Преимущества ============ -->
+<section class="section section--alt about" id="about">
+  <div class="container about__grid">
+    <div class="about__intro reveal">
+      <p class="eyebrow"><span class="eyebrow__num">04</span>О студии</p>
+      <h2 class="section__title">Мы не спешим.<br><em>Поэтому это держится.</em></h2>
+      <p class="section__lead">Один автомобиль — один мастер — один бокс. Никакого конвейера, никаких «сделаем к вечеру», если работа требует двух дней.</p>
+    </div>
+    <ol class="perks">
+      <li class="perk reveal">
+        <span class="perk__num">01</span>
+        <div><h3>Свет как на заводе</h3><p>Бокс с инспекционным светом 6500K: видим каждый дефект до и после работы.</p></div>
+      </li>
+      <li class="perk reveal">
+        <span class="perk__num">02</span>
+        <div><h3>Фотоотчёт в Telegram</h3><p>Присылаем фото каждого этапа. Вы видите, что происходит с машиной, не приезжая.</p></div>
+      </li>
+      <li class="perk reveal">
+        <span class="perk__num">03</span>
+        <div><h3>Гарантия на бумаге</h3><p>Гарантийный паспорт с перечнем работ, составов и сроков обслуживания.</p></div>
+      </li>
+      <li class="perk reveal">
+        <span class="perk__num">04</span>
+        <div><h3>Цена не меняется</h3><p>Сумма фиксируется после осмотра. Никаких «а тут ещё понадобилось» в конце.</p></div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ 6. Форма записи ============ -->
+<section class="section booking" id="booking">
+  <div class="booking__bg"><img loading="lazy" src="https://images.unsplash.com/photo-1508974239320-0a029497e820?w=1600&q=70&auto=format&fit=crop" alt=""></div>
+  <div class="container booking__grid">
+    <div class="booking__intro reveal">
+      <p class="eyebrow"><span class="eyebrow__num">05</span>Запись</p>
+      <h2 class="section__title">Начнём<br><em>с осмотра.</em></h2>
+      <p class="section__lead">Оставьте контакты — перезвоним в течение 15 минут в рабочее время, подберём удобный день и бесплатно осмотрим автомобиль под светом.</p>
+      <ul class="booking__points">
+        <li>Осмотр и расчёт — бесплатно</li>
+        <li>Подменный автомобиль на время работ</li>
+        <li>Оплата после приёмки</li>
+      </ul>
+    </div>
+
+    <form class="form reveal" id="booking-form" novalidate>
+      <div class="form__row">
+        <label class="field">
+          <input name="name" type="text" autocomplete="name" placeholder=" " required>
+          <span>Имя</span>
+        </label>
+        <label class="field">
+          <input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder=" " required>
+          <span>Телефон</span>
+        </label>
+      </div>
+      <label class="field">
+        <input name="car" type="text" placeholder=" " maxlength="80">
+        <span>Марка и модель автомобиля</span>
+      </label>
+      <label class="field field--select">
+        <select name="service" id="service-select">
+          <option value="">Нужна консультация</option>
+          <option>Полировка кузова</option>
+          <option>Керамическое покрытие</option>
+          <option>Плёнка PPF</option>
+          <option>Химчистка салона</option>
+          <option>Детейлинг-мойка</option>
+          <option>Диски и тонировка</option>
+          <option>Пакет «Свежесть»</option>
+          <option>Пакет «Защита»</option>
+          <option>Пакет «Шоурум»</option>
+        </select>
+        <span>Услуга</span>
+      </label>
+      <input type="text" name="website" class="form__trap" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="consent">
+        <input type="checkbox" name="consent">
+        <span class="consent__box" aria-hidden="true"></span>
+        <span>Согласен на обработку персональных данных в соответствии с <a href="#privacy">политикой конфиденциальности</a></span>
+      </label>
+      <p class="form__error" id="form-error" role="alert"></p>
+      <button class="btn btn--wide" type="submit" id="form-submit">Записаться на осмотр</button>
+
+      <div class="form__success" id="form-success" hidden>
+        <svg class="form__success-icon" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="31" />
+          <path d="M21 33 l8 8 l15 -17" />
+        </svg>
+        <p class="form__success-title">Заявка принята</p>
+        <p class="form__success-text" id="form-success-text">Мы перезвоним в течение 15 минут.</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- ============ 7. Контакты ============ -->
+<section class="section contacts" id="contacts">
+  <div class="container contacts__grid">
+    <div class="reveal">
+      <p class="eyebrow"><span class="eyebrow__num">06</span>Контакты</p>
+      <h2 class="section__title">Воронеж,<br><em>левый берег.</em></h2>
+      <dl class="contacts__list">
+        <div><dt>Адрес</dt><dd>Воронеж, адрес демонстрационный</dd></div>
+        <div><dt>Телефон</dt><dd><a href="tel:+74730000000">+7 473 000-00-00</a></dd></div>
+        <div><dt>Режим работы</dt><dd>Ежедневно, 9:00–21:00</dd></div>
+        <div><dt>Мессенджеры</dt><dd><a href="#booking">Telegram</a> · <a href="#booking">WhatsApp</a> · <a href="#booking">MAX</a></dd></div>
+      </dl>
+    </div>
+    <div class="map reveal" aria-label="Схема проезда">
+      <svg viewBox="0 0 600 420" class="map__svg" aria-hidden="true">
+        <defs>
+          <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M30 0H0V30" fill="none" stroke="currentColor" stroke-opacity=".06"/>
+          </pattern>
+        </defs>
+        <rect width="600" height="420" fill="url(#grid)"/>
+        <path d="M-10 300 C 120 280, 180 200, 300 210 S 480 120, 620 90" class="map__river"/>
+        <path d="M60 -10 L 140 430 M 0 140 L 600 180 M 380 -10 L 330 430 M 0 360 L 600 320 M 470 -10 L 560 430" class="map__road"/>
+        <path d="M 220 -10 L 250 430 M 0 60 L 600 40" class="map__road map__road--minor"/>
+        <circle cx="345" cy="185" r="38" class="map__pulse"/>
+        <circle cx="345" cy="185" r="7" class="map__dot"/>
+        <text x="362" y="160" class="map__label">ГРАФИТ</text>
+      </svg>
+      <p class="map__note">Схема условная — точная точка будет на Яндекс Картах</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="container footer__inner">
+    <span class="logo__mark">ГРАФИТ</span>
+    <p id="privacy">Демонстрационный сайт: компания, адрес, телефон и цены вымышлены. Фото — Unsplash.</p>
+    <p>© <span id="year"></span> Графит Детейлинг</p>
+  </div>
+</footer>
+
+<a href="#booking" class="sticky-cta" id="sticky-cta">Записаться</a>
+
+<script src="config.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
