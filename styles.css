@@ -262,7 +262,7 @@ em {
   content: "";
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: 12%;
+  height: 7%;
   background: linear-gradient(transparent, var(--bg));
   pointer-events: none;
 }
@@ -961,7 +961,8 @@ em {
 
   /* Первый экран на телефоне: надпись → машина → кнопки */
   .hero { height: auto; min-height: 0; max-height: none; justify-content: flex-start; padding-top: calc(var(--header-h) + 28px); }
-  .hero-3d { position: relative; inset: auto; order: 2; height: min(36svh, 330px); margin: 0; }
+  .hero-3d { position: relative; inset: auto; order: 2; height: clamp(280px, 58vw, 500px); margin: 0; }
+  .hero-3d::after { display: none; }
   .hero__top { order: 1; }
   .hero__bottom { order: 3; grid-template-columns: 1fr; gap: 20px; padding-top: 4px; }
   .hero__bottom::before { display: none; }
