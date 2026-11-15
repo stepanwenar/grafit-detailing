@@ -11,7 +11,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
-import { Reflector } from "three/addons/objects/Reflector.js";
 
 const PAINTS = {
   white: { color: 0xeeeeeb, metalness: 0.05, roughness: 0.22 },
@@ -46,30 +45,36 @@ async function init() {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmall() ? 1.5 : 1.75));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMappingExposure = 1.2;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0b0c);
-  scene.fog = new THREE.Fog(0x0b0b0c, 16, 34);
+  scene.fog = new THREE.Fog(0x0b0b0c, 13, 30);
 
   const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 80);
 
   /* ---------- Освещение ---------- */
-  // Отражения на лаке — из невидимой сцены-окружения с яркими LED-полосами.
+  // Отражения на лаке — из невидимой студии с большими софтбоксами (мягкие градиенты, без полос).
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(buildStudioEnvironment(), 0.015).texture;
   pmrem.dispose();
 
   // Общий свет бокса и ключевой спереди-сверху
-  scene.add(new THREE.HemisphereLight(0xf2f4f8, 0x202022, 1.1));
-  const key = new THREE.DirectionalLight(0xffffff, 1.3);
+  scene.add(new THREE.HemisphereLight(0xf2f4f8, 0x18181a, 0.45));
+  const key = new THREE.DirectionalLight(0xffffff, 1.1);
   key.position.set(3, 7, 6);
   scene.add(key);
+  // Контровой свет сзади — отделяет чёрный силуэт от тёмного фона
+  const rim = new THREE.DirectionalLight(0xe8eefc, 1.6);
+  rim.position.set(-4, 3.5, -7);
+  scene.add(rim);
 
-  /* ---------- Детейлинг-бокс: пол, стены, потолок, LED ---------- */
-  const floorY = 0;
-  buildDetailingBay(scene, { reflections: !isSmall() });
+  /* ---------- Студия: пол, стены, мягкий свет ---------- */
+  const PODIUM_H = 0.07;
+  const floorY = PODIUM_H; // машина стоит на подиуме
+  buildShowroom(scene);
+  const podium = buildPodium(PODIUM_H, !isSmall());
   // Мягкая тень под машиной
   const shadow = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
@@ -82,7 +87,6 @@ async function init() {
   );
   shadow.rotation.x = -Math.PI / 2;
   shadow.position.y = floorY + 0.003;
-  scene.add(shadow);
 
   /* ---------- Модель ---------- */
   const loader = new GLTFLoader();
@@ -94,10 +98,10 @@ async function init() {
 
   const car = gltf.scene;
   const paint = new THREE.MeshPhysicalMaterial({
-    ...PAINTS.white,
+    ...PAINTS.black,
     clearcoat: 1,
-    clearcoatRoughness: 0.04,
-    envMapIntensity: 1.25,
+    clearcoatRoughness: 0.03,
+    envMapIntensity: 1.4,
   });
   car.traverse((o) => {
     if (!o.isMesh) return;
@@ -129,9 +133,16 @@ async function init() {
 
   const turntable = new THREE.Group();
   if (lengthAxis === "x") car.rotation.y = Math.PI / 2;
-  turntable.add(car);
+  turntable.add(podium, shadow, car); // подиум вращается вместе с машиной
+  if (!isSmall()) {
+    // Отражение в глянцевом подиуме: зеркальная копия машины под его поверхностью
+    const mirror = car.clone();
+    mirror.scale.y *= -1;
+    mirror.position.y = 2 * PODIUM_H - car.position.y;
+    turntable.add(mirror);
+  }
   scene.add(turntable);
-  box.setFromObject(turntable);
+  box.setFromObject(car);
   const carSize = box.getSize(new THREE.Vector3());
   shadow.scale.set(carSize.x * 1.55, Math.max(carSize.z, carSize.x) * 1.25, 1);
 
@@ -202,9 +213,9 @@ async function init() {
 
   /* ---------- Цвет кузова ---------- */
   const swatches = [...document.querySelectorAll("[data-paint]")];
-  const targetColor = new THREE.Color().setHex(PAINTS.white.color);
-  let targetMetal = PAINTS.white.metalness;
-  let targetRough = PAINTS.white.roughness;
+  const targetColor = new THREE.Color().setHex(PAINTS.black.color);
+  let targetMetal = PAINTS.black.metalness;
+  let targetRough = PAINTS.black.roughness;
   swatches.forEach((btn) =>
     btn.addEventListener("click", () => {
       const p = PAINTS[btn.dataset.paint];
@@ -233,7 +244,7 @@ async function init() {
     }
     turntable.rotation.y = angle;
 
-    paint.color.lerp(targetColor, 0.08 * dt);
+    paint.color.lerp(targetColor, Math.min(1, 0.08 * dt));
     paint.metalness += (targetMetal - paint.metalness) * 0.08 * dt;
     paint.roughness += (targetRough - paint.roughness) * 0.08 * dt;
 
@@ -244,108 +255,217 @@ async function init() {
 }
 
 /**
- * Видимый детейлинг-бокс вокруг машины (машина стоит в центре, нос смотрит на камеру по +Z).
- * Размер: 11 × 20 м, потолок 4.4 м. Камера находится внутри бокса.
+ * Студия WEN: тёмный полированный пол, стены с мягкими «заливками» света,
+ * большой софтбокс над машиной. Никаких резких линий — только плавные градиенты.
  */
-function buildDetailingBay(scene, { reflections }) {
-  const W = 11, D = 20, H = 4.4;
-  const zBack = -7.5, zFront = zBack + D;
+function buildShowroom(scene) {
+  const W = 16, D = 24, H = 5.2;
+  const zBack = -8.5;
 
-  /* Пол: светло-серый наливной пол с плиткой 1×1 м и отражением */
-  const tile = canvasTexture(512, (g, n) => {
-    g.fillStyle = "#3a3b3e";
+  /* Пол: тёмный полированный бетон, без швов */
+  const concrete = canvasTexture(512, (g, n) => {
+    g.fillStyle = "#0e0e10";
     g.fillRect(0, 0, n, n);
-    // лёгкая неоднородность покрытия
-    for (let i = 0; i < 1400; i++) {
-      g.fillStyle = `rgba(255,255,255,${Math.random() * 0.025})`;
-      g.fillRect(Math.random() * n, Math.random() * n, 2, 2);
+    for (let i = 0; i < 2600; i++) {
+      const a = Math.random() * 0.035;
+      g.fillStyle = Math.random() > 0.5 ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a * 2})`;
+      const r = Math.random() * 3 + 0.5;
+      g.fillRect(Math.random() * n, Math.random() * n, r, r);
     }
-    g.strokeStyle = "rgba(10,10,12,0.9)";
-    g.lineWidth = 6;
-    g.strokeRect(0, 0, n, n);
   });
-  tile.wrapS = tile.wrapT = THREE.RepeatWrapping;
-  tile.repeat.set(W, D);
-  tile.anisotropy = 8;
+  concrete.wrapS = concrete.wrapT = THREE.RepeatWrapping;
+  concrete.repeat.set(6, 9);
 
-  if (reflections) {
-    const reflector = new Reflector(new THREE.PlaneGeometry(W, D), {
-      textureWidth: Math.round(window.innerWidth * 0.75),
-      textureHeight: Math.round(window.innerHeight * 0.75),
-      color: 0x9a9a9a,
-    });
-    reflector.rotation.x = -Math.PI / 2;
-    reflector.position.set(0, -0.002, zBack + D / 2);
-    scene.add(reflector);
-  }
+  // Пол — кольцо вокруг подиума: под подиумом пусто, там видно отражение машины
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(W, D),
-    new THREE.MeshStandardMaterial({
-      map: tile,
-      roughness: 0.32,
-      metalness: 0,
-      transparent: reflections,
-      opacity: reflections ? 0.82 : 1,
-    }),
+    new THREE.RingGeometry(3.04, 24, 128, 1),
+    new THREE.MeshStandardMaterial({ map: concrete, roughness: 0.55, metalness: 0, envMapIntensity: 0.12 }),
   );
+  concrete.repeat.set(10, 10);
   floor.rotation.x = -Math.PI / 2;
-  floor.position.set(0, 0, zBack + D / 2);
   scene.add(floor);
 
-  /* Стены: графитовые панели со швами */
-  const panel = canvasTexture(256, (g, n) => {
-    const grad = g.createLinearGradient(0, 0, n, 0);
-    grad.addColorStop(0, "#232427");
-    grad.addColorStop(0.5, "#2a2b2e");
-    grad.addColorStop(1, "#232427");
-    g.fillStyle = grad;
-    g.fillRect(0, 0, n, n);
-    g.fillStyle = "#121214";
-    g.fillRect(0, 0, 4, n);
-  });
-  panel.wrapS = panel.wrapT = THREE.RepeatWrapping;
-  const wallMat = (repeatX) => {
-    const t = panel.clone();
-    t.needsUpdate = true;
-    t.repeat.set(repeatX, 1);
-    return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85, metalness: 0 });
-  };
-  const back = new THREE.Mesh(new THREE.PlaneGeometry(W, H), wallMat(W / 1.2));
+  /* Стены и потолок: глубокий графит без швов */
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.95, envMapIntensity: 0.3 });
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(W, H), wallMat);
   back.position.set(0, H / 2, zBack);
   scene.add(back);
   for (const side of [-1, 1]) {
-    const wall = new THREE.Mesh(new THREE.PlaneGeometry(D, H), wallMat(D / 1.2));
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(D, H), wallMat);
     wall.position.set((side * W) / 2, H / 2, zBack + D / 2);
-    wall.rotation.y = -side * Math.PI / 2;
+    wall.rotation.y = (-side * Math.PI) / 2;
     scene.add(wall);
   }
-
-  /* Потолок */
-  const ceiling = new THREE.Mesh(
-    new THREE.PlaneGeometry(W, D),
-    new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 1 }),
-  );
+  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(W, D), new THREE.MeshStandardMaterial({ color: 0x101012, roughness: 1 }));
   ceiling.rotation.x = Math.PI / 2;
   ceiling.position.set(0, H, zBack + D / 2);
   scene.add(ceiling);
 
-  /* LED: линии на потолке, рамка по периметру, вертикали и подсветка пола на стенах */
-  const led = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 2.2, 2.3), toneMapped: false });
-  const ledSoft = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.1, 1.1, 1.15), toneMapped: false });
-  const ledDim = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.55, 0.55, 0.58), toneMapped: false });
-  const bar = (w, h, d, x, y, z, mat = led) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-    m.position.set(x, y, z);
-    scene.add(m);
-  };
-  for (let i = -3; i <= 3; i++) bar(0.07, 0.03, 9, i * 1.05, H - 0.02, 0.5);        // линии над машиной
-  for (const z of [-4.2, 5.2]) bar(7.4, 0.03, 0.07, 0, H - 0.02, z);                // поперечины рамки
-  for (let i = -4; i <= 4; i++) bar(0.04, 1.9, 0.03, i * 1.2, 1.45, zBack + 0.02, ledDim); // вертикали на задней стене
-  bar(W - 0.4, 0.035, 0.03, 0, 0.32, zBack + 0.02, ledSoft);                         // подсветка у пола сзади
-  for (const side of [-1, 1]) {
-    bar(0.03, 0.035, D - 2, side * (W / 2 - 0.02), 0.32, zBack + D / 2, ledSoft);    // подсветка у пола по бокам
-    for (let k = 0; k < 5; k++) bar(0.03, 2.6, 0.05, side * (W / 2 - 0.02), 1.75, zBack + 1.6 + k * 2.4, ledSoft);
+  /* Растушёвка стыка стены и пола — без линии горизонта, как «бесконечный» фон в фотостудии */
+  const fade = (stops) =>
+    new THREE.MeshBasicMaterial({
+      map: linearTexture(stops),
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+    });
+  const floorFade = new THREE.Mesh(new THREE.PlaneGeometry(W, 7), fade([[0, "rgba(14,14,16,1)"], [0.55, "rgba(14,14,16,0.75)"], [1, "rgba(14,14,16,0)"]]));
+  floorFade.rotation.x = -Math.PI / 2;
+  floorFade.position.set(0, 0.006, zBack + 3.5);
+  scene.add(floorFade);
+  const wallFade = new THREE.Mesh(new THREE.PlaneGeometry(W, 2.2), fade([[0, "rgba(14,14,16,0)"], [1, "rgba(14,14,16,1)"]]));
+  wallFade.position.set(0, 1.1, zBack + 0.05);
+  scene.add(wallFade);
+
+  /* Мягкий свет: всё — плоскости с размытыми краями и аддитивным смешиванием */
+  const glow = (w, h, color, opacity, soft = 0.45) =>
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({
+        map: softRectTexture(soft),
+        color,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        toneMapped: false,
+        fog: false,
+      }),
+    );
+
+  // Большое мягкое сияние на задней стене за машиной — силуэт читается даже у чёрного авто
+  const halo = new THREE.Mesh(
+    new THREE.PlaneGeometry(13, 6),
+    new THREE.MeshBasicMaterial({
+      map: radialTexture([[0, "rgba(255,255,255,0.55)"], [0.45, "rgba(255,255,255,0.16)"], [1, "rgba(255,255,255,0)"]]),
+      color: 0xdfe4ee,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      fog: false,
+    }),
+  );
+  halo.position.set(0, 1.6, zBack + 0.03);
+  scene.add(halo);
+
+  // Мягкие «заливки» света на задней стене (wall wash) — тёплый шампань по краям
+  for (const x of [-5.6, 5.6]) {
+    const wash = glow(2.4, H * 0.9, 0xd9c4a0, 0.22, 0.5);
+    wash.position.set(x, H * 0.48, zBack + 0.04);
+    scene.add(wash);
   }
+  // Боковые стены: широкие вертикальные световые панели с размытыми краями
+  for (const side of [-1, 1]) {
+    for (let k = 0; k < 3; k++) {
+      const panel = glow(2.6, 3.4, 0xeef1f6, 0.16, 0.5);
+      panel.position.set(side * (W / 2 - 0.03), 2.3, zBack + 3 + k * 5);
+      panel.rotation.y = (-side * Math.PI) / 2;
+      scene.add(panel);
+    }
+  }
+  // Большой софтбокс над машиной
+  const softbox = glow(7, 3.6, 0xffffff, 0.4, 0.42);
+  softbox.rotation.x = Math.PI / 2;
+  softbox.position.set(0, H - 0.04, 0);
+  scene.add(softbox);
+  // Мягкое отражение софтбокса на полу вокруг подиума
+  const floorLight = new THREE.Mesh(
+    new THREE.PlaneGeometry(14, 10),
+    new THREE.MeshBasicMaterial({
+      map: radialTexture([[0, "rgba(255,255,255,0.05)"], [0.5, "rgba(255,255,255,0.015)"], [1, "rgba(255,255,255,0)"]]),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  floorLight.rotation.x = -Math.PI / 2;
+  floorLight.position.y = 0.003;
+  scene.add(floorLight);
+}
+
+/** Поворотный подиум: тёмный глянец + мягкое шампань-свечение по краю. */
+function buildPodium(height, glossy) {
+  const R = 3.05;
+  const group = new THREE.Group();
+  const top = new THREE.Mesh(
+    new THREE.CylinderGeometry(R, R + 0.03, height, 128),
+    new THREE.MeshPhysicalMaterial({
+      color: 0x0d0d0f,
+      metalness: 0,
+      roughness: 0.32,
+      envMapIntensity: 0.1,
+      // На компьютере верх подиума — тёмное «стекло», в нём видно отражение машины
+      transparent: glossy,
+      opacity: glossy ? 0.84 : 1,
+    }),
+  );
+  top.position.y = height / 2;
+  group.add(top);
+
+  // Свечение у основания подиума — кольцо с плавным спадом в обе стороны
+  const ring = new THREE.Mesh(
+    new THREE.PlaneGeometry(R * 2.9, R * 2.9),
+    new THREE.MeshBasicMaterial({
+      map: radialTexture([
+        [0, "rgba(0,0,0,0)"],
+        [0.6, "rgba(0,0,0,0)"],
+        [0.69, "rgba(255,236,200,0.5)"],
+        [0.8, "rgba(255,236,200,0.08)"],
+        [1, "rgba(255,236,200,0)"],
+      ]),
+      color: 0xd9c4a0,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    }),
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.004;
+  group.add(ring);
+  return group;
+}
+
+/** Текстура прямоугольника с мягкими краями (soft — доля размытия от края). */
+function softRectTexture(soft = 0.45) {
+  const n = 256;
+  const c = document.createElement("canvas");
+  c.width = c.height = n;
+  const g = c.getContext("2d");
+  const f = Math.round(n * soft * 0.5);
+  const h = g.createLinearGradient(0, 0, n, 0);
+  h.addColorStop(0, "rgba(255,255,255,0)");
+  h.addColorStop(f / n, "rgba(255,255,255,1)");
+  h.addColorStop(1 - f / n, "rgba(255,255,255,1)");
+  h.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = h;
+  g.fillRect(0, 0, n, n);
+  g.globalCompositeOperation = "destination-in";
+  const v = g.createLinearGradient(0, 0, 0, n);
+  v.addColorStop(0, "rgba(255,255,255,0)");
+  v.addColorStop(f / n, "rgba(255,255,255,1)");
+  v.addColorStop(1 - f / n, "rgba(255,255,255,1)");
+  v.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = v;
+  g.fillRect(0, 0, n, n);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** Вертикальный линейный градиент: stops — [позиция 0..1 сверху вниз, цвет]. */
+function linearTexture(stops) {
+  const c = document.createElement("canvas");
+  c.width = 4;
+  c.height = 256;
+  const g = c.getContext("2d");
+  const grad = g.createLinearGradient(0, 0, 0, 256);
+  stops.forEach(([at, color]) => grad.addColorStop(at, color));
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 4, 256);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
 
 /** Текстура, нарисованная на canvas. */
@@ -358,35 +478,47 @@ function canvasTexture(size, draw) {
   return tex;
 }
 
-/** Невидимая «студия» для отражений: тёмная комната, LED-полосы сверху и софтбоксы по бокам. */
+/** Невидимая студия для отражений на лаке: большие мягкие софтбоксы. */
 function buildStudioEnvironment() {
   const env = new THREE.Scene();
-  env.background = new THREE.Color(0x020202);
+  env.background = new THREE.Color(0x030303);
   const room = new THREE.Mesh(
-    new THREE.BoxGeometry(24, 9, 24),
-    new THREE.MeshBasicMaterial({ color: 0x070707, side: THREE.BackSide }),
+    new THREE.BoxGeometry(26, 10, 26),
+    new THREE.MeshBasicMaterial({ color: 0x0a0a0b, side: THREE.BackSide }),
   );
-  room.position.y = 4;
+  room.position.y = 4.5;
   env.add(room);
 
-  const bright = new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 6, 6.2) });
-  for (let i = -3; i <= 3; i++) {
-    const strip = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 14), bright);
-    strip.rotation.x = Math.PI / 2;
-    strip.position.set(i * 1.3, 6.5, 0);
-    env.add(strip);
+  const box = (w, h, intensity, soft) =>
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({
+        map: softRectTexture(soft),
+        color: new THREE.Color(intensity, intensity, intensity * 1.02),
+        transparent: true,
+        side: THREE.DoubleSide,
+      }),
+    );
+  // Главный софтбокс сверху
+  const top = box(9, 5, 7, 0.35);
+  top.rotation.x = Math.PI / 2;
+  top.position.set(0, 7, 0);
+  env.add(top);
+  // Длинные боковые софтбоксы — плавные «полосы» вдоль борта
+  for (const x of [-10, 10]) {
+    const side = box(14, 2.6, 3.2, 0.5);
+    side.position.set(x, 2.4, 0);
+    side.rotation.y = Math.PI / 2;
+    env.add(side);
   }
-  const soft = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.7), side: THREE.DoubleSide });
-  for (const x of [-9, 9]) {
-    const box = new THREE.Mesh(new THREE.PlaneGeometry(10, 2.2), soft);
-    box.position.set(x, 2.2, 0);
-    box.rotation.y = Math.PI / 2;
-    env.add(box);
-  }
-  const front = new THREE.Mesh(new THREE.PlaneGeometry(12, 1.4), soft);
-  front.position.set(0, 2.6, 10);
+  // Спереди и сзади — мягкие заполняющие
+  const front = box(12, 3, 1.4, 0.55);
+  front.position.set(0, 2.5, 11);
   front.rotation.y = Math.PI;
   env.add(front);
+  const back = box(12, 3, 1.0, 0.55);
+  back.position.set(0, 2.5, -11);
+  env.add(back);
   return env;
 }
 
