@@ -11,6 +11,8 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
 const PAINTS = {
   white: { color: 0xeeeeeb, metalness: 0.05, roughness: 0.22 },
@@ -74,6 +76,7 @@ async function init() {
   const PODIUM_H = 0.07;
   const floorY = PODIUM_H; // машина стоит на подиуме
   buildShowroom(scene);
+  const signReady = buildSign(scene).catch((err) => console.warn("Вывеска не загрузилась:", err?.message || err));
   const podium = buildPodium(PODIUM_H, !isSmall());
   // Мягкая тень под машиной
   const shadow = new THREE.Mesh(
@@ -157,7 +160,8 @@ async function init() {
     camera.fov = small ? 30 : 23;
     // Расстояние подбираем так, чтобы в профиль машина занимала ~85% ширины (на телефоне ~95%)
     const widthFactor = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
-    const wanted = CAR_LENGTH / (small ? 1.0 : 0.95);
+    // Машина занимает ~2/3 ширины: так модель выглядит аккуратно, а над ней видна вывеска
+    const wanted = CAR_LENGTH / (small ? 0.74 : 0.64);
     // …но так, чтобы по высоте машина тоже помещалась (важно для широких и низких окон)
     const heightFactor = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
     const minDist = (small ? 3.0 : 2.9) / heightFactor;
@@ -165,8 +169,8 @@ async function init() {
     camera.position.set(0, small ? 1.45 : 1.35, dist);
     camera.lookAt(target);
     // На компьютере опускаем машину ниже центра — сверху надпись
-    if (small) camera.clearViewOffset();
-    else camera.setViewOffset(w, h, 0, -h * 0.095, w, h);
+    if (small) camera.setViewOffset(w, h, 0, -h * 0.12, w, h);
+    else camera.setViewOffset(w, h, 0, -h * 0.13, w, h);
     camera.updateProjectionMatrix();
   }
   layout();
@@ -251,7 +255,95 @@ async function init() {
     renderer.render(scene, camera);
   }
   frame();
+  await signReady;
   hero.classList.add("is-3d-ready");
+}
+
+/**
+ * Объёмная вывеска на задней стене: металлические буквы «WEN» с тёплой подсветкой
+ * из-за букв (halo-lit) и строка «DETAILING STUDIO» под ними.
+ */
+async function buildSign(scene) {
+  const loader = new FontLoader();
+  const [bold, regular] = await Promise.all([
+    loader.loadAsync("vendor/three/fonts/helvetiker_bold.typeface.json"),
+    loader.loadAsync("vendor/three/fonts/helvetiker_regular.typeface.json"),
+  ]);
+  const wallZ = -8.5;
+  const group = new THREE.Group();
+
+  const metal = new THREE.MeshPhysicalMaterial({
+    color: 0xd8c4a0, // шампань, как акценты сайта
+    metalness: 1,
+    roughness: 0.3,
+    clearcoat: 0.4,
+    envMapIntensity: 1.3,
+  });
+
+  // Буквы ставим по одной, чтобы задать разрядку (как у настоящих объёмных вывесок)
+  // Мелкая строка — с лёгкой собственной подсветкой торцов, чтобы читалась
+  const metalLit = metal.clone();
+  metalLit.emissive = new THREE.Color(0x4a3c26);
+
+  function word(text, font, size, depth, spacing, material = metal) {
+    const g = new THREE.Group();
+    let x = 0;
+    for (const ch of text) {
+      if (ch === " ") {
+        x += size * 0.55 + spacing;
+        continue;
+      }
+      const geo = new TextGeometry(ch, {
+        font,
+        size,
+        depth,
+        curveSegments: 10,
+        bevelEnabled: true,
+        bevelThickness: depth * 0.12,
+        bevelSize: size * 0.012,
+        bevelSegments: 3,
+      });
+      geo.computeBoundingBox();
+      const wdt = geo.boundingBox.max.x - geo.boundingBox.min.x;
+      const m = new THREE.Mesh(geo, material);
+      m.position.x = x - geo.boundingBox.min.x;
+      g.add(m);
+      x += wdt + spacing;
+    }
+    const total = x - spacing;
+    g.children.forEach((m) => (m.position.x -= total / 2));
+    return { group: g, width: total };
+  }
+
+  const wen = word("WEN", bold, 0.95, 0.16, 0.34);
+  wen.group.position.y = 2.55;
+  const sub = word("DETAILING STUDIO", regular, 0.2, 0.05, 0.17, metalLit);
+  sub.group.position.y = 2.08;
+  group.add(wen.group, sub.group);
+  group.position.z = wallZ + 0.14; // буквы на «ножках» в 14 см от стены
+  scene.add(group);
+
+  // Подсветка из-за букв: тёплое мягкое сияние на стене (halo-lit)
+  const halo = new THREE.Mesh(
+    new THREE.PlaneGeometry(wen.width * 2.6, 2.4),
+    new THREE.MeshBasicMaterial({
+      map: radialTexture([[0, "rgba(255,236,205,0.85)"], [0.4, "rgba(255,226,184,0.32)"], [1, "rgba(255,226,184,0)"]]),
+      color: 0xffe2b8,
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+      fog: false,
+    }),
+  );
+  halo.position.set(0, 2.45, wallZ + 0.02);
+  scene.add(halo);
+
+  // Тёплый свет от вывески на буквы и стену
+  const signLight = new THREE.PointLight(0xffe2b8, 6, 7, 2);
+  signLight.position.set(0, 2.4, wallZ + 1.2);
+  scene.add(signLight);
 }
 
 /**
@@ -368,36 +460,25 @@ function buildShowroom(scene) {
   softbox.rotation.x = Math.PI / 2;
   softbox.position.set(0, H - 0.04, 0);
   scene.add(softbox);
-  // Мягкое отражение софтбокса на полу вокруг подиума
-  const floorLight = new THREE.Mesh(
-    new THREE.PlaneGeometry(14, 10),
-    new THREE.MeshBasicMaterial({
-      map: radialTexture([[0, "rgba(255,255,255,0.05)"], [0.5, "rgba(255,255,255,0.015)"], [1, "rgba(255,255,255,0)"]]),
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }),
-  );
-  floorLight.rotation.x = -Math.PI / 2;
-  floorLight.position.y = 0.003;
-  scene.add(floorLight);
 }
 
 /** Поворотный подиум: тёмный глянец + мягкое шампань-свечение по краю. */
 function buildPodium(height, glossy) {
   const R = 3.05;
   const group = new THREE.Group();
+  const side = new THREE.MeshStandardMaterial({ color: 0x070708, roughness: 0.7, envMapIntensity: 0.05 });
   const top = new THREE.Mesh(
     new THREE.CylinderGeometry(R, R + 0.03, height, 128),
-    new THREE.MeshPhysicalMaterial({
-      color: 0x0d0d0f,
+    [side, new THREE.MeshPhysicalMaterial({
+      color: 0x0a0a0b,
       metalness: 0,
-      roughness: 0.32,
-      envMapIntensity: 0.1,
+      roughness: 0.6,
+      specularIntensity: 0.25,
+      envMapIntensity: 0.06,
       // На компьютере верх подиума — тёмное «стекло», в нём видно отражение машины
       transparent: glossy,
       opacity: glossy ? 0.84 : 1,
-    }),
+    }), side],
   );
   top.position.y = height / 2;
   group.add(top);

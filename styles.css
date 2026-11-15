@@ -333,6 +333,15 @@ em {
   letter-spacing: -0.05em;
 }
 .hero__title em { font-size: 1.04em; letter-spacing: -0.02em; }
+/* Когда 3D загрузилось, название показывает объёмная вывеска в студии.
+   Текстовый заголовок остаётся для поисковиков и экранных читалок. */
+.hero.is-3d-ready .hero__title {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 .hero__lead {
   display: none;
   max-width: 520px;
@@ -961,7 +970,7 @@ em {
 
   /* Первый экран на телефоне: надпись → машина → кнопки */
   .hero { height: auto; min-height: 0; max-height: none; justify-content: flex-start; padding-top: calc(var(--header-h) + 28px); }
-  .hero-3d { position: relative; inset: auto; order: 2; height: clamp(220px, min(58vw, 58svh), 500px); margin: 0; }
+  .hero-3d { position: relative; inset: auto; order: 2; height: clamp(260px, min(78vw, 58svh), 520px); margin: 0; }
   .hero-3d::after { display: none; }
   .hero__top { order: 1; }
   .hero__bottom { order: 3; grid-template-columns: 1fr; gap: 20px; padding-top: 4px; }
