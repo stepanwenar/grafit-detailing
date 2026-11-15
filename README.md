@@ -22,6 +22,9 @@ python3 -m http.server 8080
 | `styles.css` | стиль: цвета, шрифты, анимации, адаптация под телефон |
 | `main.js` | меню, анимации появления, цены по классу авто, слайдер «до/после», отправка формы |
 | `config.js` | адрес WenLeadAI и ключ формы |
+| `hero3d.js` | 3D-сцена первого экрана: Porsche 911 в детейлинг-боксе, вращение 360°, смена цвета |
+| `models/porsche-911.glb` | 3D-модель, сжатая с 19 до 2,5 МБ (meshopt + WebP) |
+| `vendor/three/` | библиотека three.js r170 — лежит в проекте, чтобы не зависеть от CDN |
 
 ## Перед запуском для реального клиента
 
@@ -32,3 +35,10 @@ python3 -m http.server 8080
 - Политика конфиденциальности и текст согласия — от юриста.
 
 Фото: [Unsplash](https://unsplash.com) (бесплатная лицензия).
+
+3D-модель: [«Porsche 911 Turbo S 992 (WIP)»](https://sketchfab.com/3d-models/porsche-911-turbo-s-992-wip-b0a77bb9395548aabcfe51b2ca476b8b),
+автор [let's not care abt it](https://sketchfab.com/Pie-The-destroyer-of-the-World), лицензия
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Изменения: сжатие геометрии и текстур,
+материал кузова и стёкол заменён. Упоминание автора в подвале сайта обязательно по лицензии.
+
+three.js — MIT, см. `vendor/three/LICENSE`.

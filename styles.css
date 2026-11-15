@@ -250,38 +250,138 @@ em {
   justify-content: flex-end;
   overflow: hidden;
 }
-.hero__media { position: absolute; inset: 0; }
-.hero__media img {
+/* 3D-сцена на первом экране */
+.hero-3d { position: absolute; inset: 0; }
+.hero-3d__fallback {
+  position: absolute;
+  inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
   object-position: center 60%;
   transform: scale(1.12);
   animation: heroZoom 9s var(--ease) forwards;
-  will-change: transform;
+  transition: opacity 1.4s var(--ease);
 }
 @keyframes heroZoom { to { transform: scale(1); } }
+.hero-3d__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  opacity: 0;
+  cursor: grab;
+  touch-action: pan-y;          /* вертикальный свайп — прокрутка страницы */
+  outline: none;
+  transition: opacity 1.6s var(--ease);
+}
+.hero-3d.is-ready .hero-3d__canvas { opacity: 1; }
+.hero-3d.is-ready .hero-3d__fallback { opacity: 0; }
+.hero-3d.is-dragging .hero-3d__canvas { cursor: grabbing; }
+.hero-3d__canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+
+.hero-3d__progress {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 2px;
+  z-index: 3;
+  transition: opacity 0.6s;
+}
+.hero-3d__progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+.hero-3d.is-ready .hero-3d__progress,
+.hero-3d.is-failed .hero-3d__progress { opacity: 0; }
+
+.hero-3d__ui {
+  position: absolute;
+  z-index: 2;
+  right: max(var(--gutter), calc((100vw - 1320px) / 2 + var(--gutter)));
+  bottom: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 1s 0.6s var(--ease), transform 1s 0.6s var(--ease);
+  pointer-events: none;
+}
+.hero-3d.is-ready .hero-3d__ui { opacity: 1; transform: none; }
+.hero-3d__hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: opacity 0.8s var(--ease);
+}
+.hero-3d.was-touched .hero-3d__hint { opacity: 0; }
+.hero-3d__paints {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 18px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgba(11, 11, 12, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+.hero-3d__car { margin-right: 8px; font-size: 12.5px; color: #cfccc5; letter-spacing: 0.02em; white-space: nowrap; }
+.swatch {
+  width: 26px; height: 26px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  outline-offset: 3px;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.swatch:hover { transform: scale(1.1); }
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--accent); }
+.swatch:focus-visible { outline: 2px solid var(--accent); }
+.swatch--white { background: linear-gradient(145deg, #ffffff, #cfcfcb); }
+.swatch--graphite { background: linear-gradient(145deg, #6b6e73, #2c2e31); }
+.swatch--black { background: linear-gradient(145deg, #3a3a3d, #050506); }
 
 .hero__veil {
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(11,11,12,0.9) 0%, rgba(11,11,12,0.55) 12%, rgba(11,11,12,0.05) 32%, rgba(11,11,12,0.25) 55%, rgba(11,11,12,0.96) 100%),
-    radial-gradient(ellipse at 20% 80%, rgba(11,11,12,0.7), transparent 60%);
+    linear-gradient(180deg, rgba(11,11,12,0.7) 0%, transparent 18%, transparent 62%, rgba(11,11,12,0.92) 100%),
+    linear-gradient(90deg, rgba(11,11,12,0.75) 0%, rgba(11,11,12,0.25) 34%, transparent 52%);
 }
 
-.hero__content { position: relative; padding-bottom: clamp(40px, 6vw, 72px); }
+.hero__content {
+  position: relative;
+  max-width: 1320px;
+  padding-bottom: clamp(40px, 6vw, 72px);
+  pointer-events: none;          /* перетаскивание машины работает и под текстом */
+}
+.hero__content a, .hero__stats a { pointer-events: auto; }
+.hero__stats { pointer-events: none; }
 
 .hero__eyebrow { color: var(--accent-2); }
 .hero__title {
   margin: 0;
-  font-size: clamp(46px, 8.4vw, 128px);
+  font-size: clamp(46px, 6.4vw, 104px);
   font-weight: 300;
   line-height: 0.98;
   letter-spacing: -0.045em;
 }
 .hero__title em { font-size: 1.06em; }
 .hero__lead {
-  max-width: 520px;
+  max-width: 440px;
   margin: 32px 0 40px;
   font-size: clamp(16px, 1.35vw, 19px);
   font-weight: 300;
@@ -877,6 +977,28 @@ em {
 @media (max-width: 900px) {
   :root { --header-h: 64px; }
 
+  /* Первый экран на телефоне: сверху 3D-машина, ниже текст */
+  .hero { min-height: auto; justify-content: flex-start; padding-top: var(--header-h); }
+  .hero-3d { position: relative; inset: auto; height: min(58svh, 520px); }
+  .hero-3d::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 30%;
+    background: linear-gradient(transparent, var(--bg));
+    pointer-events: none;
+  }
+  .hero__veil { display: none; }
+  .hero-3d__ui {
+    left: 16px; right: 16px;
+    bottom: 10px;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-3d__hint { font-size: 10.5px; letter-spacing: 0.12em; }
+  .hero-3d__car { font-size: 11.5px; }
+  .hero__content { padding-top: 28px; padding-bottom: 32px; }
+
   .nav {
     position: fixed;
     inset: var(--header-h) 0 auto;
@@ -944,6 +1066,8 @@ em {
 }
 
 @media (max-width: 640px) {
+  .hero__title { font-size: 46px; }
+  .hero__lead { margin: 18px 0 24px; font-size: 15px; }
   .services { grid-template-columns: 1fr; }
   .service__body { padding: 26px 22px 30px; }
   .hero__stats { grid-template-columns: repeat(3, 1fr); gap: 16px; }
