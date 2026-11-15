@@ -51,63 +51,25 @@ async function init() {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0b0c);
-  scene.fog = new THREE.Fog(0x0b0b0c, 9, 22);
+  scene.fog = new THREE.Fog(0x0b0b0c, 16, 34);
 
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 60);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 80);
 
-  /* ---------- Освещение: «бокс» с линейными LED-панелями ---------- */
-  // Отражения на лаке берутся из невидимой сцены-окружения со светящимися полосами.
+  /* ---------- Освещение ---------- */
+  // Отражения на лаке — из невидимой сцены-окружения с яркими LED-полосами.
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(buildStudioEnvironment(), 0.015).texture;
   pmrem.dispose();
 
-  // Мягкий заполняющий свет сверху и ключевой спереди, чтобы белый кузов выглядел белым
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x1a1a1a, 0.9));
-  const key = new THREE.DirectionalLight(0xffffff, 1.4);
-  key.position.set(3, 6, 5);
+  // Общий свет бокса и ключевой спереди-сверху
+  scene.add(new THREE.HemisphereLight(0xf2f4f8, 0x202022, 1.1));
+  const key = new THREE.DirectionalLight(0xffffff, 1.3);
+  key.position.set(3, 7, 6);
   scene.add(key);
 
-  // Световое пятно на полу под машиной — как от софтбокса над «сценой»
-  const pool = new THREE.Mesh(
-    new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({
-      map: radialTexture([[0, "rgba(255,255,255,0.16)"], [0.5, "rgba(255,255,255,0.05)"], [1, "rgba(255,255,255,0)"]]),
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    }),
-  );
-  pool.rotation.x = -Math.PI / 2;
-  pool.position.y = 0.004;
-  pool.scale.set(11, 7, 1);
-  scene.add(pool);
-
-  /* ---------- Пол: тёмный глянец + отражение машины ---------- */
+  /* ---------- Детейлинг-бокс: пол, стены, потолок, LED ---------- */
   const floorY = 0;
-  if (!isSmall()) {
-    const reflector = new Reflector(new THREE.CircleGeometry(14, 64), {
-      textureWidth: Math.round(window.innerWidth * 0.6),
-      textureHeight: Math.round(window.innerHeight * 0.6),
-      color: 0x8a8a8a,
-    });
-    reflector.rotation.x = -Math.PI / 2;
-    reflector.position.y = floorY - 0.002;
-    scene.add(reflector);
-  }
-  const floor = new THREE.Mesh(
-    new THREE.CircleGeometry(14, 64),
-    new THREE.MeshStandardMaterial({
-      color: 0x0d0d0e,
-      roughness: 0.35,
-      metalness: 0.0,
-      transparent: !isSmall(),
-      opacity: isSmall() ? 1 : 0.86,
-    }),
-  );
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = floorY;
-  scene.add(floor);
-
+  buildDetailingBay(scene, { reflections: !isSmall() });
   // Мягкая тень под машиной
   const shadow = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
@@ -184,13 +146,13 @@ async function init() {
     camera.fov = small ? 30 : 23;
     // Расстояние подбираем так, чтобы в профиль машина занимала ~85% ширины (на телефоне ~95%)
     const widthFactor = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
-    const wanted = CAR_LENGTH / (small ? 0.95 : 0.78);
+    const wanted = CAR_LENGTH / (small ? 1.0 : 0.88);
     const dist = Math.max(wanted / widthFactor, small ? 7 : 7.4);
     camera.position.set(0, small ? 1.45 : 1.35, dist);
     camera.lookAt(target);
     // На компьютере опускаем машину ниже центра — сверху надпись
     if (small) camera.clearViewOffset();
-    else camera.setViewOffset(w, h, 0, -h * 0.15, w, h);
+    else camera.setViewOffset(w, h, 0, -h * 0.11, w, h);
     camera.updateProjectionMatrix();
   }
   layout();
@@ -276,6 +238,121 @@ async function init() {
   }
   frame();
   hero.classList.add("is-3d-ready");
+}
+
+/**
+ * Видимый детейлинг-бокс вокруг машины (машина стоит в центре, нос смотрит на камеру по +Z).
+ * Размер: 11 × 20 м, потолок 4.4 м. Камера находится внутри бокса.
+ */
+function buildDetailingBay(scene, { reflections }) {
+  const W = 11, D = 20, H = 4.4;
+  const zBack = -7.5, zFront = zBack + D;
+
+  /* Пол: светло-серый наливной пол с плиткой 1×1 м и отражением */
+  const tile = canvasTexture(512, (g, n) => {
+    g.fillStyle = "#3a3b3e";
+    g.fillRect(0, 0, n, n);
+    // лёгкая неоднородность покрытия
+    for (let i = 0; i < 1400; i++) {
+      g.fillStyle = `rgba(255,255,255,${Math.random() * 0.025})`;
+      g.fillRect(Math.random() * n, Math.random() * n, 2, 2);
+    }
+    g.strokeStyle = "rgba(10,10,12,0.9)";
+    g.lineWidth = 6;
+    g.strokeRect(0, 0, n, n);
+  });
+  tile.wrapS = tile.wrapT = THREE.RepeatWrapping;
+  tile.repeat.set(W, D);
+  tile.anisotropy = 8;
+
+  if (reflections) {
+    const reflector = new Reflector(new THREE.PlaneGeometry(W, D), {
+      textureWidth: Math.round(window.innerWidth * 0.75),
+      textureHeight: Math.round(window.innerHeight * 0.75),
+      color: 0x9a9a9a,
+    });
+    reflector.rotation.x = -Math.PI / 2;
+    reflector.position.set(0, -0.002, zBack + D / 2);
+    scene.add(reflector);
+  }
+  const floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(W, D),
+    new THREE.MeshStandardMaterial({
+      map: tile,
+      roughness: 0.32,
+      metalness: 0,
+      transparent: reflections,
+      opacity: reflections ? 0.82 : 1,
+    }),
+  );
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(0, 0, zBack + D / 2);
+  scene.add(floor);
+
+  /* Стены: графитовые панели со швами */
+  const panel = canvasTexture(256, (g, n) => {
+    const grad = g.createLinearGradient(0, 0, n, 0);
+    grad.addColorStop(0, "#232427");
+    grad.addColorStop(0.5, "#2a2b2e");
+    grad.addColorStop(1, "#232427");
+    g.fillStyle = grad;
+    g.fillRect(0, 0, n, n);
+    g.fillStyle = "#121214";
+    g.fillRect(0, 0, 4, n);
+  });
+  panel.wrapS = panel.wrapT = THREE.RepeatWrapping;
+  const wallMat = (repeatX) => {
+    const t = panel.clone();
+    t.needsUpdate = true;
+    t.repeat.set(repeatX, 1);
+    return new THREE.MeshStandardMaterial({ map: t, roughness: 0.85, metalness: 0 });
+  };
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(W, H), wallMat(W / 1.2));
+  back.position.set(0, H / 2, zBack);
+  scene.add(back);
+  for (const side of [-1, 1]) {
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(D, H), wallMat(D / 1.2));
+    wall.position.set((side * W) / 2, H / 2, zBack + D / 2);
+    wall.rotation.y = -side * Math.PI / 2;
+    scene.add(wall);
+  }
+
+  /* Потолок */
+  const ceiling = new THREE.Mesh(
+    new THREE.PlaneGeometry(W, D),
+    new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 1 }),
+  );
+  ceiling.rotation.x = Math.PI / 2;
+  ceiling.position.set(0, H, zBack + D / 2);
+  scene.add(ceiling);
+
+  /* LED: линии на потолке, рамка по периметру, вертикали и подсветка пола на стенах */
+  const led = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, 2.2, 2.3), toneMapped: false });
+  const ledSoft = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.1, 1.1, 1.15), toneMapped: false });
+  const ledDim = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.55, 0.55, 0.58), toneMapped: false });
+  const bar = (w, h, d, x, y, z, mat = led) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z);
+    scene.add(m);
+  };
+  for (let i = -3; i <= 3; i++) bar(0.07, 0.03, 9, i * 1.05, H - 0.02, 0.5);        // линии над машиной
+  for (const z of [-4.2, 5.2]) bar(7.4, 0.03, 0.07, 0, H - 0.02, z);                // поперечины рамки
+  for (let i = -4; i <= 4; i++) bar(0.04, 1.9, 0.03, i * 1.2, 1.45, zBack + 0.02, ledDim); // вертикали на задней стене
+  bar(W - 0.4, 0.035, 0.03, 0, 0.32, zBack + 0.02, ledSoft);                         // подсветка у пола сзади
+  for (const side of [-1, 1]) {
+    bar(0.03, 0.035, D - 2, side * (W / 2 - 0.02), 0.32, zBack + D / 2, ledSoft);    // подсветка у пола по бокам
+    for (let k = 0; k < 5; k++) bar(0.03, 2.6, 0.05, side * (W / 2 - 0.02), 1.75, zBack + 1.6 + k * 2.4, ledSoft);
+  }
+}
+
+/** Текстура, нарисованная на canvas. */
+function canvasTexture(size, draw) {
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  draw(c.getContext("2d"), size);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
 
 /** Невидимая «студия» для отражений: тёмная комната, LED-полосы сверху и софтбоксы по бокам. */

@@ -262,7 +262,7 @@ em {
   content: "";
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: 22%;
+  height: 12%;
   background: linear-gradient(transparent, var(--bg));
   pointer-events: none;
 }
@@ -316,6 +316,14 @@ em {
   text-align: center;
   pointer-events: none;       /* перетаскивание машины работает и под текстом */
 }
+.hero__top::before {
+  /* затемнение под надписью, чтобы светильники бокса не мешали читать */
+  content: "";
+  position: absolute;
+  inset: -40% -10% -30%;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(11, 11, 12, 0.78) 0%, rgba(11, 11, 12, 0.45) 45%, transparent 72%);
+}
 .hero__eyebrow { justify-content: center; margin-bottom: 18px; color: var(--accent-2); }
 .hero__title {
   margin: 0;
@@ -326,6 +334,7 @@ em {
 }
 .hero__title em { font-size: 1.04em; letter-spacing: -0.02em; }
 .hero__lead {
+  display: none;
   max-width: 520px;
   margin: 20px auto 0;
   font-size: clamp(14px, 1.15vw, 16px);
