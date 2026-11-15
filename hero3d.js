@@ -22,6 +22,7 @@ const BODY_MATERIAL = "Material.009"; // панели кузова в исход
 const CAR_LENGTH = 4.55; // длина 911 Turbo S, м
 
 const root = document.getElementById("hero-3d");
+const hero = document.getElementById("hero");
 const canvas = document.getElementById("hero-canvas");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const isSmall = () => window.innerWidth < 900;
@@ -37,7 +38,7 @@ function webglAvailable() {
 
 if (root && canvas && webglAvailable()) init().catch((err) => {
   console.warn("3D отключено:", err?.message || err);
-  root.classList.add("is-failed");
+  hero.classList.add("is-3d-failed");
 });
 
 async function init() {
@@ -66,19 +67,20 @@ async function init() {
   key.position.set(3, 6, 5);
   scene.add(key);
 
-  // Видимые элементы бокса: полосы света на потолке и на дальней стене
-  const stripMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.6, 1.6, 1.65) });
-  for (let i = -2; i <= 2; i++) {
-    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.03, 7.5), stripMat);
-    strip.position.set(i * 1.25, 3.6, -1);
-    scene.add(strip);
-  }
-  const wallMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.55, 0.55, 0.58) });
-  for (let i = 0; i < 3; i++) {
-    const line = new THREE.Mesh(new THREE.PlaneGeometry(9, 0.035), wallMat);
-    line.position.set(0, 1.0 + i * 0.85, -7.5);
-    scene.add(line);
-  }
+  // Световое пятно на полу под машиной — как от софтбокса над «сценой»
+  const pool = new THREE.Mesh(
+    new THREE.PlaneGeometry(1, 1),
+    new THREE.MeshBasicMaterial({
+      map: radialTexture([[0, "rgba(255,255,255,0.16)"], [0.5, "rgba(255,255,255,0.05)"], [1, "rgba(255,255,255,0)"]]),
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  pool.rotation.x = -Math.PI / 2;
+  pool.position.y = 0.004;
+  pool.scale.set(11, 7, 1);
+  scene.add(pool);
 
   /* ---------- Пол: тёмный глянец + отражение машины ---------- */
   const floorY = 0;
@@ -109,7 +111,12 @@ async function init() {
   // Мягкая тень под машиной
   const shadow = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1),
-    new THREE.MeshBasicMaterial({ map: radialShadowTexture(), transparent: true, depthWrite: false, opacity: 0.9 }),
+    new THREE.MeshBasicMaterial({
+      map: radialTexture([[0, "rgba(0,0,0,0.95)"], [0.45, "rgba(0,0,0,0.65)"], [1, "rgba(0,0,0,0)"]]),
+      transparent: true,
+      depthWrite: false,
+      opacity: 0.9,
+    }),
   );
   shadow.rotation.x = -Math.PI / 2;
   shadow.position.y = floorY + 0.003;
@@ -139,8 +146,9 @@ async function init() {
         // Стёкла: тёмная тонировка
         m.color?.setHex(0x0a0c0e);
         m.opacity = Math.max(m.opacity, 0.82);
-        m.roughness = 0.02;
+        m.roughness = 0.08;
         m.metalness = 0.1;
+        m.envMapIntensity = 0.45;
       }
       return m;
     });
@@ -165,21 +173,24 @@ async function init() {
   const carSize = box.getSize(new THREE.Vector3());
   shadow.scale.set(carSize.x * 1.55, Math.max(carSize.z, carSize.x) * 1.25, 1);
 
-  /* ---------- Кадрирование под ширину экрана ---------- */
-  const target = new THREE.Vector3(0, 0.55, 0);
+  /* ---------- Кадрирование: машина крупно и по центру ---------- */
+  const target = new THREE.Vector3(0, 0.62, 0);
   function layout() {
     const w = root.clientWidth;
     const h = root.clientHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     const small = w < 900;
-    camera.fov = small ? 34 : 28;
-    const dist = small ? 9.2 / Math.min(1, camera.aspect * 1.25) : 10.6;
-    camera.position.set(0, small ? 1.5 : 1.55, dist);
+    camera.fov = small ? 30 : 23;
+    // Расстояние подбираем так, чтобы в профиль машина занимала ~85% ширины (на телефоне ~95%)
+    const widthFactor = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
+    const wanted = CAR_LENGTH / (small ? 0.95 : 0.78);
+    const dist = Math.max(wanted / widthFactor, small ? 7 : 7.4);
+    camera.position.set(0, small ? 1.45 : 1.35, dist);
     camera.lookAt(target);
-    // Сдвигаем машину вправо на компьютере (слева текст) и вверх на телефоне (снизу текст)
-    if (small) camera.setViewOffset(w, h, 0, h * 0.02, w, h);
-    else camera.setViewOffset(w, h, -w * 0.22, h * 0.02, w, h);
+    // На компьютере опускаем машину ниже центра — сверху надпись
+    if (small) camera.clearViewOffset();
+    else camera.setViewOffset(w, h, 0, -h * 0.15, w, h);
     camera.updateProjectionMatrix();
   }
   layout();
@@ -198,7 +209,7 @@ async function init() {
     lastX = e.clientX;
     velocity = 0;
     canvas.setPointerCapture(e.pointerId);
-    root.classList.add("is-dragging", "was-touched");
+    hero.classList.add("is-dragging", "was-touched");
   });
   canvas.addEventListener("pointermove", (e) => {
     if (!dragging) return;
@@ -211,7 +222,7 @@ async function init() {
   });
   const endDrag = () => {
     dragging = false;
-    root.classList.remove("is-dragging");
+    hero.classList.remove("is-dragging");
     lastInteraction = performance.now();
   };
   canvas.addEventListener("pointerup", endDrag);
@@ -225,7 +236,7 @@ async function init() {
   });
 
   /* ---------- Цвет кузова ---------- */
-  const swatches = [...root.querySelectorAll("[data-paint]")];
+  const swatches = [...document.querySelectorAll("[data-paint]")];
   const targetColor = new THREE.Color().setHex(PAINTS.white.color);
   let targetMetal = PAINTS.white.metalness;
   let targetRough = PAINTS.white.roughness;
@@ -264,7 +275,7 @@ async function init() {
     renderer.render(scene, camera);
   }
   frame();
-  root.classList.add("is-ready");
+  hero.classList.add("is-3d-ready");
 }
 
 /** Невидимая «студия» для отражений: тёмная комната, LED-полосы сверху и софтбоксы по бокам. */
@@ -299,15 +310,13 @@ function buildStudioEnvironment() {
   return env;
 }
 
-/** Текстура мягкой тени: тёмное пятно с размытыми краями. */
-function radialShadowTexture() {
+/** Текстура радиального градиента (тень или световое пятно). */
+function radialTexture(stops) {
   const c = document.createElement("canvas");
   c.width = c.height = 256;
   const g = c.getContext("2d");
-  const grad = g.createRadialGradient(128, 128, 10, 128, 128, 128);
-  grad.addColorStop(0, "rgba(0,0,0,0.95)");
-  grad.addColorStop(0.45, "rgba(0,0,0,0.65)");
-  grad.addColorStop(1, "rgba(0,0,0,0)");
+  const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  stops.forEach(([at, color]) => grad.addColorStop(at, color));
   g.fillStyle = grad;
   g.fillRect(0, 0, 256, 256);
   const tex = new THREE.CanvasTexture(c);
