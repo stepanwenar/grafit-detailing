@@ -146,13 +146,13 @@ async function init() {
     camera.fov = small ? 30 : 23;
     // Расстояние подбираем так, чтобы в профиль машина занимала ~85% ширины (на телефоне ~95%)
     const widthFactor = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
-    const wanted = CAR_LENGTH / (small ? 1.0 : 0.88);
+    const wanted = CAR_LENGTH / (small ? 1.0 : 0.95);
     const dist = Math.max(wanted / widthFactor, small ? 7 : 7.4);
     camera.position.set(0, small ? 1.45 : 1.35, dist);
     camera.lookAt(target);
     // На компьютере опускаем машину ниже центра — сверху надпись
     if (small) camera.clearViewOffset();
-    else camera.setViewOffset(w, h, 0, -h * 0.11, w, h);
+    else camera.setViewOffset(w, h, 0, -h * 0.095, w, h);
     camera.updateProjectionMatrix();
   }
   layout();
